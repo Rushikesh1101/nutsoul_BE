@@ -5,7 +5,7 @@ import certifi
 
 class MongoDB:
     def __init__(self, uri=None, db_name=None):
-        self.uri = "mongodb+srv://nutsoulbharat:nutsoul%40999@nutsoul.zumjlyt.mongodb.net/nutsoul?retryWrites=true&w=majority"
+        self.uri = "mongodb+srv://nutsoulbharat:nutsoul@999@nutsoul.zumjlyt.mongodb.net/?appName=NutSoul"
         self.db_name = "NutSoul"
         self.client = MongoClient(
             self.uri,
