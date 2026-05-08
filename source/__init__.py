@@ -18,7 +18,7 @@ from source.routes.logger_config import setup_logger
 
 mongo = MongoDB()
 
-UPLOAD_FOLDER = "uploads"
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
@@ -36,7 +36,9 @@ def create_app():
 
     # app = Flask(__name__)
 
-    app.config["SECRET_KEY"] = "MY_DRY_FRUITS"
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+    app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 
     # Add these session configurations
     app.config["SESSION_PERMANENT"] = False
