@@ -1,9 +1,9 @@
 import os
+import certifi
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 
 
-_DEFAULT_URI = "mongodb+srv://nutsoulbharat:nutsoul%40999@nutsoul.zumjlyt.mongodb.net/?appName=NutSoul"
 _DEFAULT_DB = "NutSoul"
 
 _client = None
@@ -12,13 +12,22 @@ _client = None
 def _get_client(uri):
     global _client
     if _client is None:
-        _client = MongoClient(uri, server_api=ServerApi("1"))
+        _client = MongoClient(
+            uri,
+            server_api=ServerApi("1"),
+            tlsCAFile=certifi.where(),
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=10000,
+            retryWrites=True,
+        )
     return _client
 
 
 class MongoDB:
     def __init__(self, uri=None, db_name=None):
-        self.uri = uri or os.getenv("MONGO_URI") or _DEFAULT_URI
+        self.uri = uri or os.getenv("MONGO_URI")
+        if not self.uri:
+            raise RuntimeError("MONGO_URI environment variable is not set")
         self.db_name = db_name or os.getenv("MONGO_DB_NAME") or _DEFAULT_DB
 
         self.client = _get_client(self.uri)
@@ -31,6 +40,4 @@ class MongoDB:
         self.address = self.db["address"]
 
     def close(self):
-        # Connection is reused across invocations on serverless;
-        # leave the singleton open so warm cold-starts stay fast.
         return
