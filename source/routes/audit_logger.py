@@ -1,16 +1,30 @@
-import os
+import logging
 from datetime import datetime
 
+audit_logger = logging.getLogger("audit")
+
+if not audit_logger.handlers:
+    audit_logger.setLevel(logging.INFO)
+
+    console_handler = logging.StreamHandler()
+
+    formatter = logging.Formatter("%(asctime)s [AUDIT] %(message)s")
+
+    console_handler.setFormatter(formatter)
+
+    audit_logger.addHandler(console_handler)
+
+
 def write_audit_log(action, user_email=None, status="SUCCESS", message=""):
-    today = datetime.utcnow().strftime('%Y-%m-%d')
-    log_dir = "logs/audit"
-    os.makedirs(log_dir, exist_ok=True)
 
-    log_filename = f"{today}_audit.log"
-    log_path = os.path.join(log_dir, log_filename)
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
-    log_entry = f"[{timestamp}] ACTION:{action} USER:{user_email or 'N/A'} STATUS:{status} MESSAGE:{message}\n"
+    log_entry = (
+        f"ACTION:{action} "
+        f"USER:{user_email or 'N/A'} "
+        f"STATUS:{status} "
+        f"MESSAGE:{message} "
+        f"TIME:{timestamp}"
+    )
 
-    with open(log_path, "a") as f:
-        f.write(log_entry)
+    audit_logger.info(log_entry)
