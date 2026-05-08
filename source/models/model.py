@@ -1,11 +1,12 @@
 from pymongo import MongoClient
+from pymongo.server_api import ServerApi
 import os
 import certifi
 
 
 class MongoDB:
     def __init__(self, uri=None, db_name=None):
-        self.uri = "mongodb+srv://nutsoulbharat:nutsoul@999@nutsoul.zumjlyt.mongodb.net/?appName=NutSoul"
+        self.uri = "mongodb+srv://nutsoulbharat:nutsoul@999@nutsoul.zumjlyt.mongodb.net/?appName=NutSoul&retryWrites=true&w=majority"
         self.db_name = "NutSoul"
         self.client = MongoClient(
             self.uri,
@@ -15,6 +16,7 @@ class MongoDB:
             connectTimeoutMS=30000,
             socketTimeoutMS=30000,
             retryWrites=True,
+            server_api=ServerApi('1')
         )
         self.db = self.client[self.db_name]
 
