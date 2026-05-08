@@ -1,10 +1,9 @@
-from flask import Flask
+import os
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
-import os
 
-from source.models.model import MongoDB
 from source.routes.logger_config import setup_logger
 
 from source.routes.auth.routes import auth_bp
@@ -16,25 +15,20 @@ from source.routes.cart.order_routes import ordered_routes
 
 load_dotenv()
 
-mongo = MongoDB()
-
-UPLOAD_FOLDER = "/tmp/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-prod")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me-in-prod")
     MONGO_URI = os.getenv("MONGO_URI")
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB upload cap
 
 
 def create_app():
-
     app = Flask(__name__)
-
     app.config.from_object(Config)
 
-    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+    # Vercel serverless: /tmp is the only writable path and is ephemeral.
+    app.config["UPLOAD_FOLDER"] = "/tmp/uploads"
 
     app.config["SESSION_PERMANENT"] = False
     app.config["SESSION_USE_SIGNER"] = True
@@ -42,12 +36,15 @@ def create_app():
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-    CORS(app)
+    # Comma-separated list of allowed origins, e.g.
+    # CORS_ORIGINS="https://nutsoul-fe.vercel.app,https://nutsoul.example.com"
+    cors_origins = os.getenv("CORS_ORIGINS", "*")
+    origins = [o.strip() for o in cors_origins.split(",")] if cors_origins != "*" else "*"
+    CORS(app, resources={r"/api/*": {"origins": origins}}, supports_credentials=True)
 
     JWTManager(app)
 
-    logger = setup_logger()
-    app.logger = logger
+    app.logger = setup_logger()
 
     app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(admin_pages, url_prefix="/api")
@@ -56,8 +53,12 @@ def create_app():
     app.register_blueprint(add_address_routes, url_prefix="/api")
     app.register_blueprint(ordered_routes, url_prefix="/api")
 
-    @app.teardown_appcontext
-    def close_db(exception=None):
-        mongo.close()
+    @app.route("/")
+    def root():
+        return jsonify({"status": "ok", "service": "nutsoul-backend"}), 200
+
+    @app.route("/api/health")
+    def health():
+        return jsonify({"status": "ok"}), 200
 
     return app

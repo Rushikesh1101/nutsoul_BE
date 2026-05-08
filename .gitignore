@@ -216,3 +216,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project-specific (not used in serverless deployment)
+uploads/
+products/
+logs/
+
+# Vercel
+.vercel/
+
