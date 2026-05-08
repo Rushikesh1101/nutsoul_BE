@@ -6,18 +6,11 @@ import certifi
 
 class MongoDB:
     def __init__(self, uri=None, db_name=None):
-        self.uri = "mongodb+srv://nutsoulbharat:nutsoul@999@nutsoul.zumjlyt.mongodb.net/?appName=NutSoul&retryWrites=true&w=majority"
-        self.db_name = "NutSoul"
-        self.client = MongoClient(
-            self.uri,
-            tls=True,
-            tlsCAFile=certifi.where(),
-            serverSelectionTimeoutMS=30000,
-            connectTimeoutMS=30000,
-            socketTimeoutMS=30000,
-            retryWrites=True,
-            server_api=ServerApi('1')
+        self.uri = (
+            "mongodb+srv://nutsoulbharat:nutsoul%40999@nutsoul.zumjlyt.mongodb.net/"
         )
+        self.db_name = "NutSoul"
+        self.client = MongoClient(self.uri, server_api=ServerApi("1"))
         self.db = self.client[self.db_name]
 
         self.users = self.db["users"]
